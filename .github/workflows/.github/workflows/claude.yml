@@ -1,0 +1,25 @@
+name: Claude Code Listbuild
+
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Read the first issue in this repo. That is the listbuild brief.
+            Your job is to build the list or automation described.
+            Output any generated configs, scripts, or data to /output.
+            Open a PR when ready.
