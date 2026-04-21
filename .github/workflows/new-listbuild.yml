@@ -1,0 +1,39 @@
+name: New Listbuild
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  create-listbuild-repo:
+    runs-on: ubuntu-latest
+    if: contains(github.event.issue.labels.*.name, 'listbuild')
+
+    steps:
+      - name: Create repo from template
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          ISSUE_NUMBER=${{ github.event.issue.number }}
+          REPO_NAME="listbuild-$(date +%Y%m%d)-${ISSUE_NUMBER}"
+          
+          gh api repos/josephdeville/listbuild-template/generate \
+            --method POST \
+            -f owner=josephdeville \
+            -f name=$REPO_NAME \
+            -f description="${{ github.event.issue.title }}" \
+            -f private=true
+
+          echo "REPO_NAME=$REPO_NAME" >> $GITHUB_ENV
+
+      - name: Comment repo link on issue
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo josephdeville/listbuilds \
+            --body "Listbuild repo created: https://github.com/josephdeville/${{ env.REPO_NAME }} — Claude Code is ready to use inside it."
